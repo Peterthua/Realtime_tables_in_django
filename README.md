@@ -7,13 +7,13 @@ This Django project allows users to add data to a database and view it in realti
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/your_username/realtime-django-tables.git
+       [git clone https://github.com/your_username/realtime-django-tables.git](https://github.com/Peterthua/Realtime_tables_in_django.git)
     ```
 
 2. Navigate to the project directory:
 
     ```bash
-    cd realtime-django-tables
+    cd live_tables
     ```
 
 3. Install project dependencies:
