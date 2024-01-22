@@ -1,0 +1,102 @@
+{% load crispy_forms_tags %}
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <title>Hello, world!</title>
+</head>
+<body>
+<div class="container my-3">
+    <div class="row justify-content-center align-items-center">
+        <div class="col-8">
+            {% crispy form %}
+        </div>
+        <div class="my-3">
+            <table class="table table-bordered table-striped border-primary" id="profile-table">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">FirstName</th>
+                    <th scope="col">LastName</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">D.O.B</th>
+                    <th scope="col">Location</th>
+                    <th scope="col">Language</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for profile in profiles %}
+                    <tr>
+                        <th scope="row">{{ profile.id }}</th>
+                        <td>{{ profile.first_name }}</td>
+                        <td>{{ profile.last_name }}</td>
+                        <td>{{ profile.email }}</td>
+                        <td>{{ profile.birth_date|date:"d/m/Y" }}</td>
+                        <td>{{ profile.location }}</td>
+                        <td>{{ profile.language_preference }}</td>
+                    </tr>
+                {% empty %}
+                    <tr id="no-profiles">
+                        <td colspan="4" class="text-center">No profiles</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+<script>
+    const socket = new WebSocket('ws://localhost:8000/ws/live_profile_table/');
+    const form = document.querySelector('#create-profile');
+    const table = document.querySelector('#profile-table');
+    const noProfiles = document.querySelector('#no-profiles');
+
+    socket.addEventListener('open', function (event) {
+        console.log('Connected to WS Server');
+    });
+    socket.addEventListener('message', function (event) {
+        const data = JSON.parse(event.data);
+        console.log("Profile Data XXX: ",data)
+        const row = `<tr>
+                        <th scope="row">${data.id}</th>
+                        <td>${data['first_name']}</td>
+                        <td>${data['last_name']}</td>
+                        <td>${data['email']}</td>
+                        <td>${data['birth_date']}</td>
+                        <td>${data['location']}</td>
+                        <td>${data['language_preference']}</td>
+                  </tr>`;
+        if (noProfiles) noProfiles.remove();
+        table.querySelector('tbody').insertAdjacentHTML('beforeend', row);
+    });
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+        socket.send(JSON.stringify({
+            data
+        }));
+        {#form.reset();#}
+    });
+    socket.addEventListener('close', function (event) {
+        console.log('Disconnected from WS Server');
+    });
+    socket.addEventListener('error', function (event) {
+        console.log('Error from WS Server', event);
+    });
+</script>
+</body>
+</html>
